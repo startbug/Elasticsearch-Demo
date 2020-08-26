@@ -1,8 +1,8 @@
 package com.ggs.elasticsearch.entity;
 
 import lombok.AllArgsConstructor;
-import lombok.NoArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import lombok.experimental.Accessors;
 
 import java.util.Date;
@@ -16,7 +16,7 @@ import java.util.Date;
 @AllArgsConstructor
 @Data
 @Accessors(chain = true)
-public class Book {
+public class Emp {
     private String id;
     private String name;
     private int age;

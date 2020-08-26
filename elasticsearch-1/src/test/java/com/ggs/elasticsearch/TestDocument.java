@@ -1,13 +1,20 @@
 package com.ggs.elasticsearch;
 
 import com.ggs.elasticsearch.entity.Book;
+import com.ggs.elasticsearch.entity.Emp;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import org.apache.commons.beanutils.BeanUtils;
+import org.elasticsearch.action.bulk.BulkItemResponse;
+import org.elasticsearch.action.bulk.BulkRequestBuilder;
+import org.elasticsearch.action.bulk.BulkResponse;
+import org.elasticsearch.action.delete.DeleteRequest;
 import org.elasticsearch.action.delete.DeleteResponse;
 import org.elasticsearch.action.get.GetResponse;
+import org.elasticsearch.action.index.IndexRequest;
 import org.elasticsearch.action.index.IndexResponse;
 import org.elasticsearch.action.search.SearchResponse;
+import org.elasticsearch.action.update.UpdateRequest;
 import org.elasticsearch.action.update.UpdateResponse;
 import org.elasticsearch.client.transport.TransportClient;
 import org.elasticsearch.common.settings.Settings;
@@ -146,4 +153,31 @@ public class TestDocument {
             System.out.println(hit.getSourceAsString());
         }
     }
+
+
+    //批量操作
+    @Test
+    public void testBulk() {
+        Gson gson = new GsonBuilder().setDateFormat("yyyy-MM-dd").create();
+        //增加
+        Emp emp = new Emp("66", "武松", 19, new Date(), "水浒传--中国的四大名著之一空间的弗利沙巴拉巴拉", "梁山");
+        String jsonStr = gson.toJson(emp);
+        IndexRequest indexRequest = new IndexRequest("ems","emp",emp.getId()).source(jsonStr, XContentType.JSON);
+        //删除
+        DeleteRequest deleteRequest = new DeleteRequest("ems", "emp", "spZgKXQBYbBwDPDOlp8x");
+        //修改
+        Emp empUpdate = new Emp();
+        empUpdate.setId("sZZgKXQBYbBwDPDOlp8x").setName("王超黑").setAddress("佛山").setBir(new Date());
+        String jsonStrUpdate = gson.toJson(empUpdate);
+        UpdateRequest updateRequest = new UpdateRequest("ems", "emp", empUpdate.getId()).doc(jsonStrUpdate, XContentType.JSON);
+
+        BulkRequestBuilder bulkRequestBuilder = this.transportClient.prepareBulk();
+        BulkResponse bulkItemResponses = bulkRequestBuilder.add(indexRequest).add(deleteRequest).add(updateRequest).get();
+        BulkItemResponse[] items = bulkItemResponses.getItems();
+
+        for (BulkItemResponse item : items) {
+            System.out.println(item.status());
+        }
+    }
+
 }

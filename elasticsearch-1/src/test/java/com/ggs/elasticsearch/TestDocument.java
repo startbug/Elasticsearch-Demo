@@ -39,7 +39,7 @@ import java.util.Map;
  * @Date 2020/8/25 19:18
  */
 public class TestDocument {
-    TransportClient transportClient;
+    private TransportClient transportClient;
 
     @Before
     public void before() throws UnknownHostException {
@@ -124,13 +124,13 @@ public class TestDocument {
 
     //查询所有
     @Test
-    public void testSearchAll(){
+    public void testSearchAll() {
         SearchResponse searchResponse = this.transportClient.prepareSearch("star")
                 .setTypes("book") //指定类型
                 .setQuery(QueryBuilders.matchAllQuery()) //指定查询条件
                 .get(); //执行查询
-        System.out.println("总条数:"+searchResponse.getHits().getTotalHits());
-        System.out.println("最大得分:"+searchResponse.getHits().getMaxScore());
+        System.out.println("总条数:" + searchResponse.getHits().getTotalHits());
+        System.out.println("最大得分:" + searchResponse.getHits().getMaxScore());
 
         SearchHit[] hits = searchResponse.getHits().getHits();
         for (SearchHit hit : hits) {
@@ -140,13 +140,13 @@ public class TestDocument {
 
     //term查询
     @Test
-    public void testQuery(){
+    public void testQuery() {
         SearchResponse searchResponse = this.transportClient.prepareSearch("star")
                 .setTypes("book")
                 .setQuery(QueryBuilders.termQuery("content", "无论如何"))
                 .get();
-        System.out.println("总条数:"+searchResponse.getHits().getTotalHits());
-        System.out.println("最大得分:"+searchResponse.getHits().getMaxScore());
+        System.out.println("总条数:" + searchResponse.getHits().getTotalHits());
+        System.out.println("最大得分:" + searchResponse.getHits().getMaxScore());
 
         SearchHit[] hits = searchResponse.getHits().getHits();
         for (SearchHit hit : hits) {
@@ -162,7 +162,7 @@ public class TestDocument {
         //增加
         Emp emp = new Emp("66", "武松", 19, new Date(), "水浒传--中国的四大名著之一空间的弗利沙巴拉巴拉", "梁山");
         String jsonStr = gson.toJson(emp);
-        IndexRequest indexRequest = new IndexRequest("ems","emp",emp.getId()).source(jsonStr, XContentType.JSON);
+        IndexRequest indexRequest = new IndexRequest("ems", "emp", emp.getId()).source(jsonStr, XContentType.JSON);
         //删除
         DeleteRequest deleteRequest = new DeleteRequest("ems", "emp", "spZgKXQBYbBwDPDOlp8x");
         //修改

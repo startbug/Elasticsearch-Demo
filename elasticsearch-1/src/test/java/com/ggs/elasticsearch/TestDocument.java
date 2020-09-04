@@ -138,6 +138,19 @@ public class TestDocument {
         }
     }
 
+    @Test
+    public void cnm() {
+        SearchResponse searchResponse = this.transportClient.prepareSearch("star")
+                .setTypes("book")
+                .setQuery(QueryBuilders.matchAllQuery())
+                .get();
+
+        SearchHit[] hits = searchResponse.getHits().getHits();
+        for (SearchHit hit : hits) {
+            System.out.println(hit.getSourceAsString());
+        }
+    }
+
     //term查询
     @Test
     public void testQuery() {

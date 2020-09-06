@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <!--    <meta name="viewport"-->
+    <!--          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">-->
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>唐诗-宋词后台管理系统</title>
+    <link rel="stylesheet" th:href="@{/boot/css/bootstrap.min.css}"/>
+    <link rel="stylesheet" th:href="@{/boot/css/ui.jqgrid-bootstrap.css}"/>
+    <script type="application/javascript" th:src="@{/boot/js/jquery-3.4.1.min.js}"></script>
+    <script type="application/javascript" th:src="@{/boot/jqgrid/grid.locale-cn.js}"></script>
+    <script type="application/javascript" th:src="@{/boot/jqgrid/jquery.jqGrid.min.js}"></script>
+    <script type="application/javascript" th:src="@{/boot/js/bootstrap.min.js}"></script>
+
+    <script type="application/javascript">
+
+
+        $(function () {
+            //初始化
+            $("#contentList").jqGrid({
+                styleUI: "Bootstrap",
+                caption: "唐诗宋词列表",
+                autowidth: true,
+                height: 380,
+                url: "/poem/findByPage",
+                datatype: "json",
+                colNames: ["id", "诗词名", "作者", "类型", "来源", "内容", "作者简介"],
+                colModel: [
+                    {name: "id", editable: true},
+                    {name: "name", editable: true, width: 100},
+                    {name: "author", editable: true, width: 40},
+                    {name: "type", editable: true, width: 40},
+                    {name: "origin", editable: true, width: 40},
+                    {name: "content", editable: true, width: 400},
+                    {name: "authordes", editable: true, width: 400},
+                ],
+                pager: "#pager",
+                page: 1,
+                rowNum: 10,
+                rowList: [10, 15, 30, 40, 50, 70],
+                viewrecords: true,
+            }).jqGrid("navGrid", "#pager", {edit: true, add: true, del: true, search: true, refresh: true});
+
+
+            $("#createIndex").click(() => {
+                if (window.confirm("确定要重建索引吗?")) {
+                    $.ajax({
+                        async: true,
+                        url: "/poem/saveAllDoc",
+                        datatype: "json",
+                        type: "POST",
+                        success: function (result) {
+                            if (result.success) {
+                                alert(result.msg)
+                            } else {
+                                alert(result.msg);
+                            }
+                        }
+                    });
+                }
+            });
+
+            $("#flushDocuments").click(() => {
+                if (window.confirm("确定要清空索引吗?")) {
+                    $.ajax({
+                        async: true,
+                        url: "/poem/deleteAllDoc",
+                        datatype: "json",
+                        type: "POST",
+                        success: function (result) {
+                            if (result.success) {
+                                alert(result.msg)
+                            } else {
+                                alert(result.msg);
+                            }
+                        }
+                    })
+                }
+            })
+
+
+            //初始化热词
+            initHotRemoteDic();
+
+            $("#saveDic").click(() => {
+                var keyword = $("#remotekeyword").val()
+                $.ajax({
+                    async: true,
+                    url: "/dic/save/hot/dict",
+                    data: {
+                        "keyword": keyword
+                    },
+                    type: "POST",
+                    datatype: "json",
+                    success: function (result) {
+                        if (result.success) {
+                            alert(result.msg)
+                        } else {
+                            alert(result.msg);
+                        }
+                    }
+                })
+            });
+
+            //获取排行榜
+            $.post("/poem/findRedisKeywords", (result) => {
+                $.each(result, (i, value) => {
+                    var button = $("<button/>").addClass("btn btn-primary").css({"margin-right": "4px"}).html("&nbsp;" + value.value + "&nbsp;&nbsp;");
+                    var span = $("<span/>").addClass("badge").text(parseFloat(value.score).toFixed(1));
+                    if (value.score >= 10) {
+                        span.css("color", "red");
+                    }
+                    button.append(span);
+                    $("#rediskeywordlists").append(button);
+                });
+            }, "JSON");
+
+
+            $("#keywordLists").on("click", ".close", function () {
+
+                var value = $(this).attr("name");
+                if (confirm("确定要删除" + value + "吗?")) {
+                    $.ajax({
+                        async: true,
+                        type: "POST",
+                        dataType: "JSON",
+                        url: "/dic/delete/dict",
+                        data: {
+                            "keyword": value
+                        },
+                        success: function (result) {
+                            if (result.success) {
+                                alert(result.msg)
+                            } else {
+                                alert(result.msg);
+                            }
+                        }
+                    })
+                }
+            });
+
+        });
+
+        //封装初始化数据函数
+        function initHotRemoteDic() {
+            //获取所有热词
+            $.get("/dic/findAllDic", function (results) {
+                $("#keywordLists").empty();//清空数据
+
+                $.each(results, (i, keyword) => {
+
+                    var div = $("<div/>").css({"float": "left", "margin-right": "10px"});
+
+                    if (keyword.length <= 2) {
+                        div.css({"width": "100px;"})
+                        div.addClass("alert alert-success");
+                    }
+
+                    if (keyword.length >= 3 && keyword.length < 6) {
+                        div.css({"width": "140px;"})
+                        div.addClass("alert alert-warning");
+                    }
+
+                    if (keyword.length >= 6) {
+                        div.css({"width": "180px;"})
+                        div.addClass("alert alert-danger");
+                    }
+
+                    var button = $("<button/>").addClass("close").attr("name", keyword);
+                    var span = $("<span/>").html("&times;");
+                    button.append(span);
+                    div.append(button).append(keyword);
+                    $("#keywordLists").append(div);
+                });
+            }, "JSON");
+        }
+
+    </script>
+
+</head>
+<body>
+<!--导航条-->
+<nav class="navbar navbar-default" style="margin-bottom: 5px">
+    <div class="container-fluid">
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class="navbar-header">
+            <a class="navbar-brand" href="#">唐诗-宋词后台管理系统
+                <small>V1.0</small>
+            </a>
+        </div>
+
+        <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+            <button type="button" class="btn btn-danger navbar-btn" id="flushDocuments">清空ES所有文档</button>
+
+            <button type="button" style="margin-left: 20px;" class="btn btn-primary navbar-btn" id="createIndex">
+                基于基础数据重建ES索引库
+            </button>
+        </div>
+    </div>
+</nav>
+
+<!--中心内容栅格系统-->
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-sm-12" style="padding-left: 0px;padding-right: 0px;">
+            <!--jqrid-->
+            <table id="contentList"></table>
+            <!--jqgrid 分页工具栏-->
+            <div id="pager"></div>
+        </div>
+    </div>
+    <hr>
+    <div class="row">
+
+        <!--redis热词推荐榜-->
+        <div class="col-sm-6">
+            <div class="panel panel-default">
+                <div class="panel-heading">全网热搜榜:</div>
+                <div class="panel-body" id="rediskeywordlists">
+
+
+                </div>
+            </div>
+        </div>
+        <!--更新远程热词-->
+        <div class="col-sm-6">
+            <!--水平表单-->
+            <div class="form-horizontal">
+                <div class="form-group">
+                    <div class="col-sm-6">
+                        <input type="text" class="form-control" id="remotekeyword" placeholder="输入热词...">
+                    </div>
+                    <div class="col-sm-4">
+                        <button class="btn btn-info" id="saveDic">添加远程词典</button>
+                    </div>
+                </div>
+            </div>
+            <!--当前系统扩展词-->
+            <div id="keywordLists">
+
+            </div>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

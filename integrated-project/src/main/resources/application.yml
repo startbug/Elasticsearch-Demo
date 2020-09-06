@@ -1,2 +1,35 @@
-{
-    }
+spring:
+  datasource:
+    username: root
+    password: 123456
+    url: jdbc:mysql://localhost:3306/poem?serverTimezone=GMT%2B8&characterEncoding=UTF-8
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  thymeleaf:
+    cache: false
+    encoding: UTF-8
+  elasticsearch:
+    rest:
+      uris: 192.168.232.131:9200
+  redis:
+    host: 192.168.232.131
+    database: 0
+logging:
+  level:
+    org:
+      springframework:
+        web: debug
+server:
+  servlet:
+    encoding:
+      charset: UTF-8
+mybatis-plus:
+  type-aliases-package: com.ggs.project.entity
+  configuration:
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+
+
+
+starbug:
+  remote-dic: es/dict/init.txt
+
+
